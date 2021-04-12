@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.client.Client;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductDataBuilder;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
@@ -70,6 +71,7 @@ class BookKeeperTest {
         when(invoiceFactoryMock.create(SAMPLE_CLIENT_DATA)).thenReturn(sampleInvoice);
 
         int expectedItemCount = 1;
+
         // when
         Invoice invoice = keeper.issuance(requestWithOneItem, taxPolicyMock);
 
@@ -143,6 +145,7 @@ class BookKeeperTest {
         when(invoiceFactoryMock.create(SAMPLE_CLIENT_DATA)).thenReturn(sampleInvoice);
 
         int expectedItemCount = 0;
+
         // when
         Invoice invoice = keeper.issuance(requestWithNoItems, taxPolicyMock);
 
@@ -174,7 +177,6 @@ class BookKeeperTest {
         Invoice sampleInvoice = new Invoice(SAMPLE_INVOICE_ID, SAMPLE_CLIENT_DATA);
         when(invoiceFactoryMock.create(SAMPLE_CLIENT_DATA)).thenReturn(sampleInvoice);
 
-        int expectedItemCount = 1;
         // when
         Invoice invoice = keeper.issuance(requestWithOneItem, taxPolicyMock);
 
@@ -183,5 +185,21 @@ class BookKeeperTest {
         assertEquals(requestItemQuantity, invoice.getItems().get(0).getQuantity());
         assertEquals(itemTotalCost, invoice.getItems().get(0).getNet());
         assertEquals(SAMPLE_TAX, invoice.getItems().get(0).getTax());
+    }
+
+    @Test
+    void shouldInvokeInvoiceFactoryCreateWithClientDataFromInvoiceRequest() {
+        // given
+        InvoiceRequest requestWithClientData = new InvoiceRequest(SAMPLE_CLIENT_DATA);
+
+        ArgumentCaptor<ClientData> clientDataCaptor = ArgumentCaptor.forClass(ClientData.class);
+
+        // when
+        keeper.issuance(requestWithClientData, taxPolicyMock);
+
+        // then
+        verify(invoiceFactoryMock, times(1)).create(clientDataCaptor.capture());
+
+        assertEquals(SAMPLE_CLIENT_DATA, clientDataCaptor.getValue());
     }
 }
