@@ -73,7 +73,7 @@ class BookKeeperTest {
         // when
         Invoice invoice = keeper.issuance(requestWithOneItem, taxPolicyMock);
 
-        //
+        // then
         assertEquals(expectedItemCount, invoice.getItems()
                                                .size());
     }
@@ -146,10 +146,42 @@ class BookKeeperTest {
         // when
         Invoice invoice = keeper.issuance(requestWithNoItems, taxPolicyMock);
 
-        //
+        // then
         assertEquals(expectedItemCount, invoice.getItems()
                                                .size());
 
     }
 
+    @Test
+    public void shouldReturnReturnInvoiceWithItemCorrespondingToRequestItem() {
+        // given
+        InvoiceRequest requestWithOneItem = new InvoiceRequest(SAMPLE_CLIENT_DATA);
+
+        ProductData productData = new ProductDataBuilder().withProductId(Id.generate())
+                                                               .withPrice(Money.ZERO)
+                                                               .withName("Sample product name")
+                                                               .withProductType(ProductType.STANDARD)
+                                                               .withSnapshotDate(null)
+                                                               .build();
+
+        Money itemTotalCost = new Money(33, Money.DEFAULT_CURRENCY);
+        int requestItemQuantity = 1;
+        RequestItem requestItemDummy = new RequestItem(productData, requestItemQuantity, itemTotalCost);
+        requestWithOneItem.add(requestItemDummy);
+
+        when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(SAMPLE_TAX);
+
+        Invoice sampleInvoice = new Invoice(SAMPLE_INVOICE_ID, SAMPLE_CLIENT_DATA);
+        when(invoiceFactoryMock.create(SAMPLE_CLIENT_DATA)).thenReturn(sampleInvoice);
+
+        int expectedItemCount = 1;
+        // when
+        Invoice invoice = keeper.issuance(requestWithOneItem, taxPolicyMock);
+
+        // then
+        assertEquals(productData, invoice.getItems().get(0).getProduct());
+        assertEquals(requestItemQuantity, invoice.getItems().get(0).getQuantity());
+        assertEquals(itemTotalCost, invoice.getItems().get(0).getNet());
+        assertEquals(SAMPLE_TAX, invoice.getItems().get(0).getTax());
+    }
 }
