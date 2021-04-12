@@ -134,4 +134,22 @@ class BookKeeperTest {
         assertEquals(secondItemTotalCost, capturedMoney.get(1));
     }
 
+    @Test
+    public void shouldReturnInvoiceWithNoItemsWhenRequestDoesNotContainAnyItem() {
+        // given
+        InvoiceRequest requestWithNoItems = new InvoiceRequest(SAMPLE_CLIENT_DATA);
+
+        Invoice sampleInvoice = new Invoice(SAMPLE_INVOICE_ID, SAMPLE_CLIENT_DATA);
+        when(invoiceFactoryMock.create(SAMPLE_CLIENT_DATA)).thenReturn(sampleInvoice);
+
+        int expectedItemCount = 0;
+        // when
+        Invoice invoice = keeper.issuance(requestWithNoItems, taxPolicyMock);
+
+        //
+        assertEquals(expectedItemCount, invoice.getItems()
+                                               .size());
+
+    }
+
 }
