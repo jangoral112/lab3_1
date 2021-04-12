@@ -161,11 +161,11 @@ class BookKeeperTest {
         InvoiceRequest requestWithOneItem = new InvoiceRequest(SAMPLE_CLIENT_DATA);
 
         ProductData productData = new ProductDataBuilder().withProductId(Id.generate())
-                                                               .withPrice(Money.ZERO)
-                                                               .withName("Sample product name")
-                                                               .withProductType(ProductType.STANDARD)
-                                                               .withSnapshotDate(null)
-                                                               .build();
+                                                          .withPrice(Money.ZERO)
+                                                          .withName("Sample product name")
+                                                          .withProductType(ProductType.STANDARD)
+                                                          .withSnapshotDate(null)
+                                                          .build();
 
         Money itemTotalCost = new Money(33, Money.DEFAULT_CURRENCY);
         int requestItemQuantity = 1;
@@ -181,14 +181,22 @@ class BookKeeperTest {
         Invoice invoice = keeper.issuance(requestWithOneItem, taxPolicyMock);
 
         // then
-        assertEquals(productData, invoice.getItems().get(0).getProduct());
-        assertEquals(requestItemQuantity, invoice.getItems().get(0).getQuantity());
-        assertEquals(itemTotalCost, invoice.getItems().get(0).getNet());
-        assertEquals(SAMPLE_TAX, invoice.getItems().get(0).getTax());
+        assertEquals(productData, invoice.getItems()
+                                         .get(0)
+                                         .getProduct());
+        assertEquals(requestItemQuantity, invoice.getItems()
+                                                 .get(0)
+                                                 .getQuantity());
+        assertEquals(itemTotalCost, invoice.getItems()
+                                           .get(0)
+                                           .getNet());
+        assertEquals(SAMPLE_TAX, invoice.getItems()
+                                        .get(0)
+                                        .getTax());
     }
 
     @Test
-    void shouldInvokeInvoiceFactoryCreateWithClientDataFromInvoiceRequest() {
+    public void shouldInvokeInvoiceFactoryCreateWithClientDataFromInvoiceRequest() {
         // given
         InvoiceRequest requestWithClientData = new InvoiceRequest(SAMPLE_CLIENT_DATA);
 
@@ -201,5 +209,20 @@ class BookKeeperTest {
         verify(invoiceFactoryMock, times(1)).create(clientDataCaptor.capture());
 
         assertEquals(SAMPLE_CLIENT_DATA, clientDataCaptor.getValue());
+    }
+
+    @Test
+    public void shouldNotInteractWithTaxPolicyWhenNoItemsInInvoiceRequest() {
+        // given
+        InvoiceRequest requestWithNoItems = new InvoiceRequest(SAMPLE_CLIENT_DATA);
+
+        Invoice sampleInvoice = new Invoice(SAMPLE_INVOICE_ID, SAMPLE_CLIENT_DATA);
+        when(invoiceFactoryMock.create(SAMPLE_CLIENT_DATA)).thenReturn(sampleInvoice);
+
+        // when
+        keeper.issuance(requestWithNoItems, taxPolicyMock);
+
+        // then
+        verifyNoInteractions(taxPolicyMock);
     }
 }
