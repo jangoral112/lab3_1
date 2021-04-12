@@ -17,7 +17,7 @@ public class ProductDataBuilder {
 
     ProductType type;
 
-    public ProductDataBuilder() { }
+    public ProductDataBuilder() {}
 
     public ProductDataBuilder withProductId(Id productId) {
         this.productId = productId;
